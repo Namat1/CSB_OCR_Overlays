@@ -11,7 +11,7 @@ import re
 import time
 
 # Funktion: Overlays mit Namen hinzufügen
-def add_overlays_with_text_on_top(pdf_file, page_name_map, name_x=200, name_y=750):
+def add_overlays_with_text_on_top(pdf_file, page_name_map, name_x=200, name_y=750, extra_x=None, extra_y=None):
     reader = PdfReader(pdf_file)
     writer = PdfWriter()
 
@@ -66,10 +66,16 @@ def add_overlays_with_text_on_top(pdf_file, page_name_map, name_x=200, name_y=75
 
         # Namen hinzufügen (falls vorhanden)
         if page_number in page_name_map:
-            name = page_name_map[page_number]
+            combined_name, extra_value = page_name_map[page_number]
+            # Hauptnamen positionieren
             can.setFillColorRGB(1, 0, 0)  # Roter Text
             can.setFont("Courier-Bold", 20)
-            can.drawString(name_x, name_y, name)
+            can.drawString(name_x, name_y, combined_name)
+
+            # Zusätzlichen Wert aus Spalte 12 positionieren, wenn angegeben
+            if extra_value and extra_x is not None and extra_y is not None:
+                can.setFont("Courier-Bold", 14)
+                can.drawString(extra_x, extra_y, extra_value)
 
         can.save()
         packet.seek(0)
@@ -108,11 +114,17 @@ def match_numbers_with_excel(page_numbers, excel_data):
     for page_number, ocr_number in page_numbers.items():
         match = excel_data[excel_data['TOUR'] == ocr_number]
         if not match.empty:
-            # Sichere Umwandlung in Strings, um Fehler zu vermeiden
+            # Sichere Umwandlung in Strings
             name_spalte_4 = str(match.iloc[0]['Name_4']) if not pd.isna(match.iloc[0]['Name_4']) else ""
             name_spalte_7 = str(match.iloc[0]['Name_7']) if not pd.isna(match.iloc[0]['Name_7']) else ""
+            name_spalte_12 = str(match.iloc[0]['Name_12']) if not pd.isna(match.iloc[0]['Name_12']) else ""
+
+            # E- vor Spalte 12 setzen, falls vorhanden
+            extra_value = f"E-{name_spalte_12}" if name_spalte_12 else ""
+
+            # Namen kombinieren
             combined_name = ", ".join(filter(None, [name_spalte_4, name_spalte_7]))
-            page_name_map[page_number] = combined_name
+            page_name_map[page_number] = (combined_name, extra_value)
     return page_name_map
 
 # Streamlit App
@@ -140,17 +152,19 @@ if uploaded_pdf and uploaded_excel:
 
             # Excel-Tabelle einlesen und bereinigen
             excel_data = pd.read_excel(uploaded_excel, sheet_name="Touren", header=0)
-            relevant_data = excel_data.iloc[:, [0, 3, 6]].dropna(how='all')  # Spalten 1 (TOUR), 4 (Name) und 7
-            relevant_data.columns = ['TOUR', 'Name_4', 'Name_7']
+            relevant_data = excel_data.iloc[:, [0, 3, 6, 11]].dropna(how='all')  # Spalten 1 (TOUR), 4, 7 und 12
+            relevant_data.columns = ['TOUR', 'Name_4', 'Name_7', 'Name_12']
             relevant_data['TOUR'] = relevant_data['TOUR'].astype(str)
-            
+
             # Abgleich durchführen
             page_name_map = match_numbers_with_excel(page_numbers, relevant_data)
             time.sleep(1)  # Simuliere Arbeit
             progress_bar.progress(75)
 
             # Overlays hinzufügen und Namen ins PDF schreiben
-            output_pdf = add_overlays_with_text_on_top(uploaded_pdf, page_name_map, name_x=285, name_y=785)
+            output_pdf = add_overlays_with_text_on_top(
+                uploaded_pdf, page_name_map, name_x=285, name_y=785, extra_x=100, extra_y=700
+            )
             time.sleep(1)  # Simuliere Arbeit
             progress_bar.progress(100)
 
