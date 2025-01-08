@@ -10,7 +10,7 @@ import pytesseract
 import re
 
 # Funktion für das Hinzufügen von Overlays und Texten
-def add_overlays_with_text_on_top(pdf_file, text1, text2, text3, text4, text_x_offset, additional_text=""):
+def add_overlays_with_text_on_top(pdf_file, text1, text2, text3, text4, text_x_offset):
     reader = PdfReader(pdf_file)
     writer = PdfWriter()
 
@@ -18,20 +18,27 @@ def add_overlays_with_text_on_top(pdf_file, text1, text2, text3, text4, text_x_o
         packet = BytesIO()
         can = canvas.Canvas(packet, pagesize=A4)
 
-        # Overlays hinzufügen
+        # Erstes Overlay
         overlay_x, overlay_y, overlay_width, overlay_height = 177, 742, 393, 64
-        can.setFillColorRGB(1, 1, 1)
+        can.setFillColorRGB(1, 1, 1)  # Weißer Hintergrund
         can.rect(overlay_x, overlay_y, overlay_width, overlay_height, fill=True, stroke=False)
+
+        # Zweites Overlay
         overlay2_x, overlay2_y, overlay2_width, overlay2_height = 425, 747, 202, 81
+        can.setFillColorRGB(1, 1, 1)  # Weißer Hintergrund
         can.rect(overlay2_x, overlay2_y, overlay2_width, overlay2_height, fill=True, stroke=False)
+
+        # Drittes Overlay
         overlay3_x, overlay3_y, overlay3_width, overlay3_height = 40, 640, 475, 20
+        can.setFillColorRGB(1, 1, 1)  # Weißer Hintergrund
         can.rect(overlay3_x, overlay3_y, overlay3_width, overlay3_height, fill=True, stroke=False)
 
         # Texte auf Overlays hinzufügen
-        can.setFillColorRGB(0, 0, 0)
+        can.setFillColorRGB(0, 0, 0)  # Schwarzer Text
         can.setFont("Courier-Bold", 12)
         y_text_position = overlay_y + overlay_height - 20
         line_spacing = 30
+
         can.drawString(overlay_x + text_x_offset, y_text_position, text1)
         can.drawString(overlay_x + text_x_offset + 240, y_text_position, text2)
         can.drawString(overlay_x + text_x_offset, y_text_position - line_spacing, text3)
@@ -39,10 +46,12 @@ def add_overlays_with_text_on_top(pdf_file, text1, text2, text3, text4, text_x_o
 
         # Fester Text mit roter Schrift
         fixed_text = "!!! Achtung !!! Zwingend gesamtes Leergut abräumen."
-        can.setFillColorRGB(1, 0, 0)
+        can.setFillColorRGB(1, 0, 0)  # Rot
         can.setFont("Courier-Bold", 14)
         fixed_text_x, fixed_text_y = 75, 650
         can.drawString(fixed_text_x, fixed_text_y, fixed_text)
+
+        # Unterstreichung des festen Texts
         text_width = can.stringWidth(fixed_text, "Courier-Bold", 14)
         underline_y = fixed_text_y - 5
         can.setLineWidth(1)
