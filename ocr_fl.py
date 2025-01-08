@@ -119,10 +119,10 @@ def match_numbers_with_excel(page_numbers, excel_data):
     for page_number, ocr_number in page_numbers.items():
         match = excel_data[excel_data['TOUR'] == ocr_number]
         if not match.empty:
-            # Sichere Umwandlung in Strings
-            name_spalte_4 = str(match.iloc[0]['Name_4']) if not pd.isna(match.iloc[0]['Name_4']) else ""
-            name_spalte_7 = str(match.iloc[0]['Name_7']) if not pd.isna(match.iloc[0]['Name_7']) else ""
-            name_spalte_12 = str(match.iloc[0]['Name_12']) if not pd.isna(match.iloc[0]['Name_12']) else ""
+            # Sichere Umwandlung in Strings und Überprüfung auf 0
+            name_spalte_4 = str(match.iloc[0]['Name_4']) if not pd.isna(match.iloc[0]['Name_4']) and match.iloc[0]['Name_4'] != 0 else ""
+            name_spalte_7 = str(match.iloc[0]['Name_7']) if not pd.isna(match.iloc[0]['Name_7']) and match.iloc[0]['Name_7'] != 0 else ""
+            name_spalte_12 = str(match.iloc[0]['Name_12']) if not pd.isna(match.iloc[0]['Name_12']) and match.iloc[0]['Name_12'] != 0 else ""
 
             # E- vor Spalte 12 setzen, falls vorhanden
             extra_value = f"E-{name_spalte_12}" if name_spalte_12 else ""
@@ -169,7 +169,7 @@ if uploaded_pdf and uploaded_excel:
             rect = (94, 48, 140, 75)
             page_numbers = extract_numbers_from_pdf(uploaded_pdf, rect)
             excel_data = pd.read_excel(uploaded_excel, sheet_name="Touren", header=0)
-            relevant_data = excel_data.iloc[:, [0, 3, 6, 11]].dropna(how='all')
+            relevant_data = excel_data.iloc[:, [0, 3, 6, 11]].replace(0, pd.NA).dropna(how='all')
             relevant_data.columns = ['TOUR', 'Name_4', 'Name_7', 'Name_12']
             relevant_data['TOUR'] = relevant_data['TOUR'].astype(str)
             page_name_map = match_numbers_with_excel(page_numbers, relevant_data)
