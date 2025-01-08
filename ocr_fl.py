@@ -17,9 +17,8 @@ def add_overlays_with_text_on_top(pdf_file, page_name_map, name_x=200, name_y=75
 
     # Feste Texte
     text1 = "Name Fahrer: ___________________"
-    text2 = "LKW: ______________"
     text3 = "Rolli Anzahl: ____________"
-    text4 = "Gewaschen?: _____________"
+    text4 = "LKW: _____________"
 
     for page_number, page in enumerate(reader.pages):
         packet = BytesIO()
@@ -49,7 +48,6 @@ def add_overlays_with_text_on_top(pdf_file, page_name_map, name_x=200, name_y=75
 
         # Feste Texte schreiben
         can.drawString(overlay_x + 12, y_text_position, text1)
-        can.drawString(overlay_x + 252, y_text_position, text2)
         can.drawString(overlay_x + 12, y_text_position - line_spacing, text3)
         can.drawString(overlay_x + 212, y_text_position - line_spacing, text4)
 
@@ -148,7 +146,7 @@ if uploaded_pdf and uploaded_excel:
             progress_bar.progress(75)
 
             # Overlays hinzufügen und Namen ins PDF schreiben
-            output_pdf = add_overlays_with_text_on_top(uploaded_pdf, page_name_map, name_x=280, name_y=785)
+            output_pdf = add_overlays_with_text_on_top(uploaded_pdf, page_name_map, name_x=285, name_y=785)
             time.sleep(1)  # Simuliere Arbeit
             progress_bar.progress(100)
 
