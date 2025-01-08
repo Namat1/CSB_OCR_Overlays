@@ -9,7 +9,7 @@ from PIL import Image
 import pytesseract
 import re
 
-# Funktion: Overlays hinzufügen
+# Funktion: Overlays mit deinem spezifischen Layout hinzufügen
 def add_overlays_with_text_on_top(pdf_file, page_name_map, text_x_offset=12):
     reader = PdfReader(pdf_file)
     writer = PdfWriter()
@@ -33,7 +33,20 @@ def add_overlays_with_text_on_top(pdf_file, page_name_map, text_x_offset=12):
         can.setFillColorRGB(1, 1, 1)  # Weißer Hintergrund
         can.rect(overlay3_x, overlay3_y, overlay3_width, overlay3_height, fill=True, stroke=False)
 
-        # Text hinzufügen (falls Name vorhanden)
+        # Fester Text mit roter Schrift
+        fixed_text = "!!! Achtung !!! Zwingend gesamtes Leergut abräumen."
+        can.setFillColorRGB(1, 0, 0)  # Rot
+        can.setFont("Courier-Bold", 14)
+        fixed_text_x, fixed_text_y = 75, 650
+        can.drawString(fixed_text_x, fixed_text_y, fixed_text)
+
+        # Unterstreichung des festen Texts
+        text_width = can.stringWidth(fixed_text, "Courier-Bold", 14)
+        underline_y = fixed_text_y - 5
+        can.setLineWidth(1)
+        can.line(fixed_text_x, underline_y, fixed_text_x + text_width, underline_y)
+
+        # Namen hinzufügen (falls vorhanden)
         if page_number in page_name_map:
             name = page_name_map[page_number]
             can.setFillColorRGB(0, 0, 0)  # Schwarzer Text
