@@ -136,7 +136,8 @@ if uploaded_pdf and uploaded_excel:
     st.write("Gefundene Namen pro Seite:", page_name_map)
 
     # Overlays hinzufügen und Namen ins PDF schreiben
-    output_pdf = add_overlays_with_text_on_top(uploaded_pdf, page_name_map)
+    output_pdf = add_overlays_with_text_on_top(uploaded_pdf, page_name_map, name_x=300, name_y=700)
+
 
     # Download-Button
     st.download_button(
