@@ -10,7 +10,7 @@ import pytesseract
 import re
 
 # Funktion: Overlays mit Namen hinzufügen
-def add_overlays_with_text_on_top(pdf_file, page_name_map, name_x, name_y):
+def add_overlays_with_text_on_top(pdf_file, page_name_map, name_x=200, name_y=750):
     reader = PdfReader(pdf_file)
     writer = PdfWriter()
 
@@ -135,12 +135,8 @@ if uploaded_pdf and uploaded_excel:
     page_name_map = match_numbers_with_excel(page_numbers, relevant_data)
     st.write("Gefundene Namen pro Seite:", page_name_map)
 
-    # Slider für die Position des Namens
-    name_x = st.slider("X-Position des Namens", min_value=0, max_value=500, value=200)
-    name_y = st.slider("Y-Position des Namens", min_value=0, max_value=800, value=750)
-
     # Overlays hinzufügen und Namen ins PDF schreiben
-    output_pdf = add_overlays_with_text_on_top(uploaded_pdf, page_name_map, name_x, name_y)
+    output_pdf = add_overlays_with_text_on_top(uploaded_pdf, page_name_map)
 
     # Download-Button
     st.download_button(
