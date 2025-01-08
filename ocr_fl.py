@@ -148,7 +148,7 @@ if uploaded_pdf and uploaded_excel:
             progress_bar.progress(75)
 
             # Overlays hinzufügen und Namen ins PDF schreiben
-            output_pdf = add_overlays_with_text_on_top(uploaded_pdf, page_name_map, name_x=290, name_y=350)
+            output_pdf = add_overlays_with_text_on_top(uploaded_pdf, page_name_map, name_x=290, name_y=800)
             time.sleep(1)  # Simuliere Arbeit
             progress_bar.progress(100)
 
