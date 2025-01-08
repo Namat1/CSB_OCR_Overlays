@@ -71,61 +71,14 @@ def add_overlays_with_text_on_top(pdf_file, text1, text2, text3, text4, text_x_o
     output.seek(0)
     return output
 
-# Funktion: OCR-Zahlen aus PDF extrahieren
-def extract_numbers_from_pdf(pdf_file, rect, lang="eng"):
-    doc = fitz.open(stream=pdf_file.read(), filetype="pdf")
-    all_numbers = []
-
-    for page_number in range(len(doc)):
-        page = doc.load_page(page_number)
-        pix = page.get_pixmap(dpi=72)
-        img = Image.frombytes("RGB", [pix.width, pix.height], pix.samples)
-        cropped_img = img.crop(rect)
-        cropped_img = cropped_img.resize((cropped_img.width * 2, cropped_img.height * 2), Image.Resampling.LANCZOS)
-        text = pytesseract.image_to_string(cropped_img, lang=lang)
-        numbers = re.findall(r"\d+", text)
-        all_numbers.extend(numbers)
-    
-    doc.close()
-    return all_numbers
-
-# Funktion: OCR-Nummern mit Tournummern aus Excel abgleichen
-def match_ocr_numbers_with_names(ocr_numbers, tour_data):
-    matched_names = []
-    for ocr_number in ocr_numbers:
+# Funktion: OCR-Nummern mit Excel abgleichen
+def match_numbers_with_excel(page_numbers, tour_data):
+    page_name_map = {}
+    for page_number, ocr_number in page_numbers.items():
         match = tour_data[tour_data['TOUR'] == ocr_number]
         if not match.empty:
-            matched_names.append(match.iloc[0]['Name'])
-    return matched_names
-
-# Funktion: Namen ins PDF schreiben
-def add_names_to_pdf(pdf_file, names):
-    reader = PdfReader(pdf_file)
-    writer = PdfWriter()
-
-    for page in reader.pages:
-        packet = BytesIO()
-        can = canvas.Canvas(packet, pagesize=A4)
-
-        # Schreibe Namen ins PDF
-        text_x, text_y = 50, 750
-        can.setFont("Courier-Bold", 12)
-        for name in names:
-            can.drawString(text_x, text_y, name)
-            text_y -= 20
-
-        can.save()
-        packet.seek(0)
-        overlay_pdf = PdfReader(packet)
-        overlay_page = overlay_pdf.pages[0]
-
-        page.merge_page(overlay_page)
-        writer.add_page(page)
-
-    output = BytesIO()
-    writer.write(output)
-    output.seek(0)
-    return output
+            page_name_map[page_number] = match.iloc[0]['Name']
+    return page_name_map
 
 # Streamlit App
 st.title("PDF OCR und Excel-Abgleich")
@@ -137,22 +90,21 @@ uploaded_excel = st.file_uploader("Lade eine Excel-Tabelle hoch", type=["xlsx"])
 if uploaded_pdf and uploaded_excel:
     # OCR-Nummern extrahieren
     rect = (94, 48, 140, 75)  # Pixelbereich (x0, y0, x1, y1)
-    ocr_numbers = extract_numbers_from_pdf(uploaded_pdf, rect)
-    st.write("Extrahierte OCR-Nummern:", ocr_numbers)
+    page_numbers = extract_numbers_from_pdf(uploaded_pdf, rect)
+    st.write("Extrahierte OCR-Nummern pro Seite:", page_numbers)
 
     # Excel-Tabelle einlesen und bereinigen
     excel_data = pd.read_excel(uploaded_excel, sheet_name="Touren", header=0)
     relevant_data = excel_data.iloc[:, [0, 3]].dropna()  # Spalten 1 (TOUR) und 4 (Name)
     relevant_data.columns = ['TOUR', 'Name']
     relevant_data['TOUR'] = relevant_data['TOUR'].astype(str)
-    st.write("Bereinigte Excel-Daten:", relevant_data)
 
     # Abgleich durchführen
-    matched_names = match_ocr_numbers_with_names(ocr_numbers, relevant_data)
-    st.write("Gefundene Namen:", matched_names)
+    page_name_map = match_numbers_with_excel(page_numbers, relevant_data)
+    st.write("Gefundene Namen pro Seite:", page_name_map)
 
     # Namen ins PDF schreiben
-    output_pdf = add_names_to_pdf(uploaded_pdf, matched_names)
+    output_pdf = write_name_to_pdf_page(uploaded_pdf, page_name_map)
 
     # Download-Button
     st.download_button(
