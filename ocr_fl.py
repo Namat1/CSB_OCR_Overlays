@@ -84,11 +84,6 @@ def add_overlays_with_text_on_top(pdf_file, page_name_map, name_x=200, name_y=75
         can.save()
         packet.seek(0)
 
-        # Prüfen, ob Daten vorhanden sind
-        if packet.getbuffer().nbytes == 0:
-            st.error(f"Fehler beim Generieren des Overlays auf Seite {page_number}.")
-            continue
-
         # Overlay-Seite lesen und zusammenführen
         overlay_pdf = PdfReader(packet)
         overlay_page = overlay_pdf.pages[0]
@@ -99,8 +94,6 @@ def add_overlays_with_text_on_top(pdf_file, page_name_map, name_x=200, name_y=75
     writer.write(output)
     output.seek(0)
     return output
-
-
 
 # Funktion: OCR-Zahlen aus PDF extrahieren (nur vierstellige Nummern)
 def extract_numbers_from_pdf(pdf_file, rect, lang="eng"):
@@ -140,63 +133,49 @@ def match_numbers_with_excel(page_numbers, excel_data):
     return page_name_map
 
 # Streamlit App
-st.title("CSB Tourenplan")
+st.title("CSB Tourenplan schreiben")
+
+# Farbauswahl-Optionen
+color_options = {
+    "Rot": "#FF0000",
+    "Blau": "#0000FF",
+    "Grün": "#00FF00",
+    "Gelb": "#FFFF00",
+    "Orange": "#FFA500",
+    "Lila": "#800080",
+    "Türkis": "#40E0D0",
+    "Pink": "#FFC0CB",
+    "Grau": "#808080",
+    "Schwarz": "#000000"
+}
+
+# Farbauswahl für Namen
+st.subheader("Wählen Sie eine Farbe für den Fahrer - Namen")
+name_color_name = st.selectbox("Farbe für Namen", list(color_options.keys()))
+name_color = color_options[name_color_name]
+
+# Farbauswahl für LKW
+st.subheader("Wählen Sie eine Farbe für das LKW Kennzeichen")
+extra_color_name = st.selectbox("Farbe für den LKW", list(color_options.keys()), index=1)
+extra_color = color_options[extra_color_name]
 
 # PDF-Upload
-uploaded_pdf = st.file_uploader("Lade eine PDF-Datei hoch", type=["pdf"])
-uploaded_excel = st.file_uploader("Lade eine Excel-Tabelle hoch", type=["xlsx"])
-
-# Color Picker für Namen und E-Wert
-name_color = st.color_picker("Wählen Sie eine Farbe für den Namen", "#FF0000")  # Standard Rot
-extra_color = st.color_picker("Wählen Sie eine Farbe für den LKW", "#0000FF")  # Standard Blau
+uploaded_pdf = st.file_uploader("CSB Ladelisten PDF hochladen", type=["pdf"])
+uploaded_excel = st.file_uploader("Excel Tourenplan der aktuellen Woche hochladen", type=["xlsx"])
 
 if uploaded_pdf and uploaded_excel:
-    # Zeige den "Ausführen"-Button, sobald beide Dateien hochgeladen wurden
     if st.button("Ausführen"):
-        # Ladebalken starten
         with st.spinner("Verarbeitung läuft..."):
-            progress_bar = st.progress(0)
-
-            # OCR-Zahlen extrahieren
-            rect = (94, 48, 140, 75)  # Pixelbereich (x0, y0, x1, y1)
-            time.sleep(1)  # Simuliere Arbeit
-            progress_bar.progress(25)
-
+            rect = (94, 48, 140, 75)
             page_numbers = extract_numbers_from_pdf(uploaded_pdf, rect)
-            time.sleep(1)  # Simuliere Arbeit
-            progress_bar.progress(50)
-
-            # Excel-Tabelle einlesen und bereinigen
             excel_data = pd.read_excel(uploaded_excel, sheet_name="Touren", header=0)
-            relevant_data = excel_data.iloc[:, [0, 3, 6, 11]].dropna(how='all')  # Spalten 1 (TOUR), 4, 7 und 12
+            relevant_data = excel_data.iloc[:, [0, 3, 6, 11]].dropna(how='all')
             relevant_data.columns = ['TOUR', 'Name_4', 'Name_7', 'Name_12']
             relevant_data['TOUR'] = relevant_data['TOUR'].astype(str)
-
-            # Abgleich durchführen
             page_name_map = match_numbers_with_excel(page_numbers, relevant_data)
-            time.sleep(1)  # Simuliere Arbeit
-            progress_bar.progress(75)
-
-            # Overlays hinzufügen und Namen ins PDF schreiben
             output_pdf = add_overlays_with_text_on_top(
-                uploaded_pdf, 
-                page_name_map, 
-                name_x=285, 
-                name_y=785, 
-                extra_x=430, 
-                extra_y=755, 
-                name_color=name_color,  # Übergabe der Name-Farbe
-                extra_color=extra_color  # Übergabe der E-Wert-Farbe
+                uploaded_pdf, page_name_map, name_x=285, name_y=785, extra_x=430, extra_y=755, 
+                name_color=name_color, extra_color=extra_color
             )
-            time.sleep(1)  # Simuliere Arbeit
-            progress_bar.progress(100)
-
         st.success("Verarbeitung abgeschlossen!")
-        
-        # Download-Button
-        st.download_button(
-            label="Bearbeitetes PDF herunterladen",
-            data=output_pdf,
-            file_name="output_with_overlays_and_names.pdf",
-            mime="application/pdf"
-        )
+        st.download_button("Ladelisten PDF herunterladen", data=output_pdf, file_name="output_with_overlays.pdf", mime="application/pdf")
