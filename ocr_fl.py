@@ -71,7 +71,7 @@ def add_overlays_with_text_on_top(pdf_file, text1, text2, text3, text4, text_x_o
     output.seek(0)
     return output
 
-# Funktion für die OCR-Zahlenextraktion
+# Funktion: OCR-Zahlen aus PDF extrahieren
 def extract_numbers_from_pdf(pdf_file, rect, lang="eng"):
     doc = fitz.open(stream=pdf_file.read(), filetype="pdf")
     all_numbers = []
@@ -89,52 +89,75 @@ def extract_numbers_from_pdf(pdf_file, rect, lang="eng"):
     doc.close()
     return all_numbers
 
-# Funktion zum Abgleich der Zahlen mit der Excel-Tabelle
-def match_numbers_with_excel(numbers, excel_data):
+# Funktion: OCR-Nummern mit Tournummern aus Excel abgleichen
+def match_ocr_numbers_with_names(ocr_numbers, tour_data):
     matched_names = []
-    for number in numbers:
-        matched_row = excel_data.loc[excel_data.iloc[:, 0] == number]
-        if not matched_row.empty:
-            matched_names.append(matched_row.iloc[0, 3])  # Name aus Spalte 4 (Index 3)
+    for ocr_number in ocr_numbers:
+        match = tour_data[tour_data['TOUR'] == ocr_number]
+        if not match.empty:
+            matched_names.append(match.iloc[0]['Name'])
     return matched_names
 
-# Streamlit-App
-st.title("PDF-Bearbeitung: Overlays, OCR, Excel-Abgleich und Download")
+# Funktion: Namen ins PDF schreiben
+def add_names_to_pdf(pdf_file, names):
+    reader = PdfReader(pdf_file)
+    writer = PdfWriter()
+
+    for page in reader.pages:
+        packet = BytesIO()
+        can = canvas.Canvas(packet, pagesize=A4)
+
+        # Schreibe Namen ins PDF
+        text_x, text_y = 50, 750
+        can.setFont("Courier-Bold", 12)
+        for name in names:
+            can.drawString(text_x, text_y, name)
+            text_y -= 20
+
+        can.save()
+        packet.seek(0)
+        overlay_pdf = PdfReader(packet)
+        overlay_page = overlay_pdf.pages[0]
+
+        page.merge_page(overlay_page)
+        writer.add_page(page)
+
+    output = BytesIO()
+    writer.write(output)
+    output.seek(0)
+    return output
+
+# Streamlit App
+st.title("PDF OCR und Excel-Abgleich")
 
 # PDF-Upload
 uploaded_pdf = st.file_uploader("Lade eine PDF-Datei hoch", type=["pdf"])
 uploaded_excel = st.file_uploader("Lade eine Excel-Tabelle hoch", type=["xlsx"])
 
-if uploaded_pdf is not None and uploaded_excel is not None:
-    # Overlay-Texte
-    TEXT1, TEXT2, TEXT3, TEXT4 = "Name Fahrer: ___________________", "LKW: ______________", "Rolli Anzahl: ____________", "Gewaschen?: _____________"
-    TEXT_X_OFFSET = 12
+if uploaded_pdf and uploaded_excel:
+    # OCR-Nummern extrahieren
+    rect = (94, 48, 140, 75)  # Pixelbereich (x0, y0, x1, y1)
+    ocr_numbers = extract_numbers_from_pdf(uploaded_pdf, rect)
+    st.write("Extrahierte OCR-Nummern:", ocr_numbers)
 
-    # Lade Excel-Tabelle
-    excel_data = pd.read_excel(uploaded_excel, sheet_name="Touren")
+    # Excel-Tabelle einlesen und bereinigen
+    excel_data = pd.read_excel(uploaded_excel, sheet_name="Touren", header=0)
+    relevant_data = excel_data.iloc[:, [0, 3]].dropna()  # Spalten 1 (TOUR) und 4 (Name)
+    relevant_data.columns = ['TOUR', 'Name']
+    relevant_data['TOUR'] = relevant_data['TOUR'].astype(str)
+    st.write("Bereinigte Excel-Daten:", relevant_data)
 
-    if st.button("Overlay hinzufügen, Zahlen extrahieren und Namen abgleichen"):
-        with st.spinner("Füge Overlays hinzu..."):
-            output_pdf = add_overlays_with_text_on_top(uploaded_pdf, TEXT1, TEXT2, TEXT3, TEXT4, TEXT_X_OFFSET)
+    # Abgleich durchführen
+    matched_names = match_ocr_numbers_with_names(ocr_numbers, relevant_data)
+    st.write("Gefundene Namen:", matched_names)
 
-        with st.spinner("Extrahiere Zahlen..."):
-            rect = (94, 48, 140, 75)  # Pixelbereich (x0, y0, x1, y1)
-            extracted_numbers = extract_numbers_from_pdf(BytesIO(output_pdf.read()), rect)
+    # Namen ins PDF schreiben
+    output_pdf = add_names_to_pdf(uploaded_pdf, matched_names)
 
-        with st.spinner("Vergleiche Zahlen mit Excel..."):
-            matched_names = match_numbers_with_excel(extracted_numbers, excel_data)
-
-        if matched_names:
-            st.success(f"Namen gefunden: {', '.join(matched_names)}")
-            with st.spinner("Schreibe Namen ins PDF..."):
-                output_pdf = add_overlays_with_text_on_top(uploaded_pdf, TEXT1, TEXT2, TEXT3, TEXT4, TEXT_X_OFFSET, ", ".join(matched_names))
-        else:
-            st.warning("Keine Übereinstimmungen gefunden.")
-
-        # Download-Button
-        st.download_button(
-            label="Bearbeitetes PDF herunterladen",
-            data=output_pdf,
-            file_name="output_with_overlays_and_names.pdf",
-            mime="application/pdf"
-        )
+    # Download-Button
+    st.download_button(
+        label="Bearbeitetes PDF herunterladen",
+        data=output_pdf,
+        file_name="output_with_names.pdf",
+        mime="application/pdf"
+    )
