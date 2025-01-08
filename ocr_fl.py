@@ -16,7 +16,7 @@ def add_overlays_with_text_on_top(pdf_file, page_name_map, name_x=200, name_y=75
     writer = PdfWriter()
 
     # Feste Texte
-    text1 = "Name Fahrer: ______________________________"
+    text1 = "Name Fahrer: __________________________________"
     text3 = "Rolli Anzahl: ____________"
     text4 = "LKW: _____________"
 
@@ -68,7 +68,7 @@ def add_overlays_with_text_on_top(pdf_file, page_name_map, name_x=200, name_y=75
         if page_number in page_name_map:
             name = page_name_map[page_number]
             can.setFillColorRGB(1, 0, 0)  # Roter Text
-            can.setFont("Courier-Bold", 16)
+            can.setFont("Courier-Bold", 20)
             can.drawString(name_x, name_y, name)
 
         can.save()
