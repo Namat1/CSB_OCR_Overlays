@@ -9,13 +9,12 @@ from PIL import Image
 import pytesseract
 import re
 
-
-# Funktion für das Hinzufügen von Overlays und Texten
-def add_overlays_with_text_on_top(pdf_file, text1, text2, text3, text4, text_x_offset):
+# Funktion: Overlays hinzufügen
+def add_overlays_with_text_on_top(pdf_file, page_name_map, text_x_offset=12):
     reader = PdfReader(pdf_file)
     writer = PdfWriter()
 
-    for page in reader.pages:
+    for page_number, page in enumerate(reader.pages):
         packet = BytesIO()
         can = canvas.Canvas(packet, pagesize=A4)
 
@@ -34,29 +33,12 @@ def add_overlays_with_text_on_top(pdf_file, text1, text2, text3, text4, text_x_o
         can.setFillColorRGB(1, 1, 1)  # Weißer Hintergrund
         can.rect(overlay3_x, overlay3_y, overlay3_width, overlay3_height, fill=True, stroke=False)
 
-        # Texte auf Overlays hinzufügen
-        can.setFillColorRGB(0, 0, 0)  # Schwarzer Text
-        can.setFont("Courier-Bold", 12)
-        y_text_position = overlay_y + overlay_height - 20
-        line_spacing = 30
-
-        can.drawString(overlay_x + text_x_offset, y_text_position, text1)
-        can.drawString(overlay_x + text_x_offset + 240, y_text_position, text2)
-        can.drawString(overlay_x + text_x_offset, y_text_position - line_spacing, text3)
-        can.drawString(overlay_x + text_x_offset + 200, y_text_position - line_spacing, text4)
-
-        # Fester Text mit roter Schrift
-        fixed_text = "!!! Achtung !!! Zwingend gesamtes Leergut abräumen."
-        can.setFillColorRGB(1, 0, 0)  # Rot
-        can.setFont("Courier-Bold", 14)
-        fixed_text_x, fixed_text_y = 75, 650
-        can.drawString(fixed_text_x, fixed_text_y, fixed_text)
-
-        # Unterstreichung des festen Texts
-        text_width = can.stringWidth(fixed_text, "Courier-Bold", 14)
-        underline_y = fixed_text_y - 5
-        can.setLineWidth(1)
-        can.line(fixed_text_x, underline_y, fixed_text_x + text_width, underline_y)
+        # Text hinzufügen (falls Name vorhanden)
+        if page_number in page_name_map:
+            name = page_name_map[page_number]
+            can.setFillColorRGB(0, 0, 0)  # Schwarzer Text
+            can.setFont("Courier-Bold", 12)
+            can.drawString(overlay_x + text_x_offset, overlay_y + 20, f"Name: {name}")
 
         can.save()
         packet.seek(0)
@@ -70,7 +52,6 @@ def add_overlays_with_text_on_top(pdf_file, text1, text2, text3, text4, text_x_o
     writer.write(output)
     output.seek(0)
     return output
-
 
 # Funktion: OCR-Zahlen aus PDF extrahieren (nur vierstellige Nummern)
 def extract_numbers_from_pdf(pdf_file, rect, lang="eng"):
@@ -89,40 +70,6 @@ def extract_numbers_from_pdf(pdf_file, rect, lang="eng"):
             page_numbers[page_number] = numbers[0]  # Nehme die erste gefundene Nummer
     doc.close()
     return page_numbers
-
-# Funktion: Overlays mit Text hinzufügen
-def add_overlays_to_pdf(pdf_file, page_name_map):
-    reader = PdfReader(pdf_file)
-    writer = PdfWriter()
-
-    for page_number, page in enumerate(reader.pages):
-        packet = BytesIO()
-        can = canvas.Canvas(packet, pagesize=A4)
-
-        # Overlays hinzufügen
-        overlay_x, overlay_y, overlay_width, overlay_height = 177, 742, 393, 64
-        can.setFillColorRGB(1, 1, 1)  # Weiß
-        can.rect(overlay_x, overlay_y, overlay_width, overlay_height, fill=True, stroke=False)
-
-        # Namen hinzufügen (falls vorhanden)
-        if page_number in page_name_map:
-            name = page_name_map[page_number]
-            can.setFillColorRGB(0, 0, 0)  # Schwarzer Text
-            can.setFont("Courier-Bold", 12)
-            can.drawString(overlay_x + 20, overlay_y + 20, f"Name: {name}")
-
-        can.save()
-        packet.seek(0)
-        overlay_pdf = PdfReader(packet)
-        overlay_page = overlay_pdf.pages[0]
-
-        page.merge_page(overlay_page)
-        writer.add_page(page)
-
-    output = BytesIO()
-    writer.write(output)
-    output.seek(0)
-    return output
 
 # Funktion: OCR-Nummern mit Excel abgleichen
 def match_numbers_with_excel(page_numbers, excel_data):
@@ -157,7 +104,7 @@ if uploaded_pdf and uploaded_excel:
     st.write("Gefundene Namen pro Seite:", page_name_map)
 
     # Overlays hinzufügen und Namen ins PDF schreiben
-    output_pdf = add_overlays_to_pdf(uploaded_pdf, page_name_map)
+    output_pdf = add_overlays_with_text_on_top(uploaded_pdf, page_name_map)
 
     # Download-Button
     st.download_button(
