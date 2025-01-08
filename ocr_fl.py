@@ -13,6 +13,8 @@ import time
 
 # Funktion: Overlays mit Namen hinzufügen
 def add_overlays_with_text_on_top(pdf_file, page_name_map, name_x=200, name_y=750, extra_x=None, extra_y=None, name_color="#FF0000", extra_color="#0000FF"):
+    from reportlab.lib.colors import HexColor
+    
     # Farbwerte in RGB umwandeln
     name_color_rgb = HexColor(name_color)
     extra_color_rgb = HexColor(extra_color)
@@ -39,18 +41,24 @@ def add_overlays_with_text_on_top(pdf_file, page_name_map, name_x=200, name_y=75
                 can.setFont("Courier-Bold", 22)
                 can.drawString(extra_x, extra_y, extra_value)
 
-        can.save()
-        packet.seek(0)
-        overlay_pdf = PdfReader(packet)
-        overlay_page = overlay_pdf.pages[0]
+        can.save()  # Speichert die Inhalte ins `packet`
+        packet.seek(0)  # Zurück zum Anfang des Streams
 
-        page.merge_page(overlay_page)
+        try:
+            overlay_pdf = PdfReader(packet)
+            overlay_page = overlay_pdf.pages[0]
+            page.merge_page(overlay_page)
+        except IndexError:
+            st.error(f"Fehler beim Hinzufügen der Seite {page_number}. Bitte überprüfen Sie die PDF-Generierung.")
+            continue
+
         writer.add_page(page)
 
     output = BytesIO()
     writer.write(output)
     output.seek(0)
     return output
+
 
 # Funktion: OCR-Zahlen aus PDF extrahieren (nur vierstellige Nummern)
 def extract_numbers_from_pdf(pdf_file, rect, lang="eng"):
