@@ -16,7 +16,7 @@ def add_overlays_with_text_on_top(pdf_file, page_name_map, name_x=200, name_y=75
     writer = PdfWriter()
 
     # Feste Texte
-    text1 = "Name Fahrer: ___________________"
+    text1 = "Name Fahrer: ______________________________"
     text3 = "Rolli Anzahl: ____________"
     text4 = "LKW: _____________"
 
