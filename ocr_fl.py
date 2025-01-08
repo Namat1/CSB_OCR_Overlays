@@ -9,8 +9,8 @@ from PIL import Image
 import pytesseract
 import re
 
-# Funktion: Overlays mit deinem spezifischen Layout und Texten hinzufügen
-def add_overlays_with_text_on_top(pdf_file, page_name_map, text_x_offset=12):
+# Funktion: Overlays mit Namen hinzufügen
+def add_overlays_with_text_on_top(pdf_file, page_name_map, name_x, name_y):
     reader = PdfReader(pdf_file)
     writer = PdfWriter()
 
@@ -39,7 +39,7 @@ def add_overlays_with_text_on_top(pdf_file, page_name_map, text_x_offset=12):
         can.setFillColorRGB(1, 1, 1)  # Weißer Hintergrund
         can.rect(overlay3_x, overlay3_y, overlay3_width, overlay3_height, fill=True, stroke=False)
 
-        # Fester Text hinzufügen
+        # Feste Texte hinzufügen
         can.setFillColorRGB(0, 0, 0)  # Schwarzer Text
         can.setFont("Courier-Bold", 12)
 
@@ -47,10 +47,10 @@ def add_overlays_with_text_on_top(pdf_file, page_name_map, text_x_offset=12):
         line_spacing = 30
 
         # Feste Texte schreiben
-        can.drawString(overlay_x + text_x_offset, y_text_position, text1)
-        can.drawString(overlay_x + text_x_offset + 240, y_text_position, text2)
-        can.drawString(overlay_x + text_x_offset, y_text_position - line_spacing, text3)
-        can.drawString(overlay_x + text_x_offset + 200, y_text_position - line_spacing, text4)
+        can.drawString(overlay_x + 12, y_text_position, text1)
+        can.drawString(overlay_x + 252, y_text_position, text2)
+        can.drawString(overlay_x + 12, y_text_position - line_spacing, text3)
+        can.drawString(overlay_x + 212, y_text_position - line_spacing, text4)
 
         # Fester Text in roter Schrift
         fixed_text = "!!! Achtung !!! Zwingend gesamtes Leergut abräumen."
@@ -68,9 +68,9 @@ def add_overlays_with_text_on_top(pdf_file, page_name_map, text_x_offset=12):
         # Namen hinzufügen (falls vorhanden)
         if page_number in page_name_map:
             name = page_name_map[page_number]
-            can.setFillColorRGB(0, 0, 0)  # Schwarzer Text
+            can.setFillColorRGB(1, 0, 0)  # Roter Text
             can.setFont("Courier-Bold", 12)
-            can.drawString(overlay_x + text_x_offset, overlay_y + 20, f"Name: {name}")
+            can.drawString(name_x, name_y, name)
 
         can.save()
         packet.seek(0)
@@ -135,8 +135,12 @@ if uploaded_pdf and uploaded_excel:
     page_name_map = match_numbers_with_excel(page_numbers, relevant_data)
     st.write("Gefundene Namen pro Seite:", page_name_map)
 
+    # Slider für die Position des Namens
+    name_x = st.slider("X-Position des Namens", min_value=0, max_value=500, value=200)
+    name_y = st.slider("Y-Position des Namens", min_value=0, max_value=800, value=750)
+
     # Overlays hinzufügen und Namen ins PDF schreiben
-    output_pdf = add_overlays_with_text_on_top(uploaded_pdf, page_name_map)
+    output_pdf = add_overlays_with_text_on_top(uploaded_pdf, page_name_map, name_x, name_y)
 
     # Download-Button
     st.download_button(
