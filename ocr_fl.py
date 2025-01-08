@@ -69,7 +69,7 @@ def add_overlays_with_text_on_top(pdf_file, page_name_map, name_x=200, name_y=75
         if page_number in page_name_map:
             name = page_name_map[page_number]
             can.setFillColorRGB(1, 0, 0)  # Roter Text
-            can.setFont("Courier-Bold", 12)
+            can.setFont("Courier-Bold", 14)
             can.drawString(name_x, name_y, name)
 
         can.save()
