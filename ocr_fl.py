@@ -108,11 +108,13 @@ def match_numbers_with_excel(page_numbers, excel_data):
     for page_number, ocr_number in page_numbers.items():
         match = excel_data[excel_data['TOUR'] == ocr_number]
         if not match.empty:
-            name_spalte_4 = match.iloc[0]['Name_4'] if pd.notna(match.iloc[0]['Name_4']) else ""
-            name_spalte_6 = match.iloc[0]['Name_6'] if pd.notna(match.iloc[0]['Name_6']) else ""
+            # Sichere Umwandlung in Strings, um Fehler zu vermeiden
+            name_spalte_4 = str(match.iloc[0]['Name_4']) if not pd.isna(match.iloc[0]['Name_4']) else ""
+            name_spalte_6 = str(match.iloc[0]['Name_6']) if not pd.isna(match.iloc[0]['Name_6']) else ""
             combined_name = ", ".join(filter(None, [name_spalte_4, name_spalte_6]))
             page_name_map[page_number] = combined_name
     return page_name_map
+
 
 
 # Streamlit App
