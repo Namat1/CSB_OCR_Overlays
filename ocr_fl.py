@@ -108,8 +108,12 @@ def match_numbers_with_excel(page_numbers, excel_data):
     for page_number, ocr_number in page_numbers.items():
         match = excel_data[excel_data['TOUR'] == ocr_number]
         if not match.empty:
-            page_name_map[page_number] = match.iloc[0]['Name']  # Name aus Spalte 4
+            name_spalte_4 = match.iloc[0]['Name_4'] if pd.notna(match.iloc[0]['Name_4']) else ""
+            name_spalte_6 = match.iloc[0]['Name_6'] if pd.notna(match.iloc[0]['Name_6']) else ""
+            combined_name = ", ".join(filter(None, [name_spalte_4, name_spalte_6]))
+            page_name_map[page_number] = combined_name
     return page_name_map
+
 
 # Streamlit App
 st.title("PDF OCR und Excel-Abgleich mit Overlays")
@@ -136,9 +140,10 @@ if uploaded_pdf and uploaded_excel:
 
             # Excel-Tabelle einlesen und bereinigen
             excel_data = pd.read_excel(uploaded_excel, sheet_name="Touren", header=0)
-            relevant_data = excel_data.iloc[:, [0, 3]].dropna()  # Spalten 1 (TOUR) und 4 (Name)
-            relevant_data.columns = ['TOUR', 'Name']
+            relevant_data = excel_data.iloc[:, [0, 3, 5]].dropna(how='all')  # Spalten 1 (TOUR), 4 (Name) und 6
+            relevant_data.columns = ['TOUR', 'Name_4', 'Name_6']
             relevant_data['TOUR'] = relevant_data['TOUR'].astype(str)
+
 
             # Abgleich durchführen
             page_name_map = match_numbers_with_excel(page_numbers, relevant_data)
