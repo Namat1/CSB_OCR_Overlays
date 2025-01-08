@@ -123,7 +123,6 @@ if uploaded_pdf and uploaded_excel:
     # OCR-Zahlen extrahieren (nur vierstellige Nummern)
     rect = (94, 48, 140, 75)  # Pixelbereich (x0, y0, x1, y1)
     page_numbers = extract_numbers_from_pdf(uploaded_pdf, rect)
-    st.write("Extrahierte OCR-Nummern pro Seite:", page_numbers)
 
     # Excel-Tabelle einlesen und bereinigen
     excel_data = pd.read_excel(uploaded_excel, sheet_name="Touren", header=0)
@@ -133,11 +132,9 @@ if uploaded_pdf and uploaded_excel:
 
     # Abgleich durchführen
     page_name_map = match_numbers_with_excel(page_numbers, relevant_data)
-    st.write("Gefundene Namen pro Seite:", page_name_map)
 
     # Overlays hinzufügen und Namen ins PDF schreiben
     output_pdf = add_overlays_with_text_on_top(uploaded_pdf, page_name_map, name_x=300, name_y=700)
-
 
     # Download-Button
     st.download_button(
