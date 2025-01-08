@@ -2,6 +2,7 @@ import streamlit as st
 from PyPDF2 import PdfReader, PdfWriter
 from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import A4
+from reportlab.lib.colors import HexColor
 from io import BytesIO
 import pandas as pd
 import fitz  # PyMuPDF
@@ -11,69 +12,30 @@ import re
 import time
 
 # Funktion: Overlays mit Namen hinzufügen
-def add_overlays_with_text_on_top(pdf_file, page_name_map, name_x=200, name_y=750, extra_x=None, extra_y=None):
+def add_overlays_with_text_on_top(pdf_file, page_name_map, name_x=200, name_y=750, extra_x=None, extra_y=None, name_color="#FF0000", extra_color="#0000FF"):
+    # Farbwerte in RGB umwandeln
+    name_color_rgb = HexColor(name_color)
+    extra_color_rgb = HexColor(extra_color)
+    
     reader = PdfReader(pdf_file)
     writer = PdfWriter()
-
-    # Feste Texte
-    text1 = "Name Fahrer: __________________________________"
-    text3 = "Rolli Anzahl: ____________"
-    text4 = "LKW: _____________"
 
     for page_number, page in enumerate(reader.pages):
         packet = BytesIO()
         can = canvas.Canvas(packet, pagesize=A4)
 
-        # Erstes Overlay
-        overlay_x, overlay_y, overlay_width, overlay_height = 177, 742, 393, 64
-        can.setFillColorRGB(1, 1, 1)  # Weißer Hintergrund
-        can.rect(overlay_x, overlay_y, overlay_width, overlay_height, fill=True, stroke=False)
-
-        # Zweites Overlay
-        overlay2_x, overlay2_y, overlay2_width, overlay2_height = 425, 747, 202, 81
-        can.setFillColorRGB(1, 1, 1)  # Weißer Hintergrund
-        can.rect(overlay2_x, overlay2_y, overlay2_width, overlay2_height, fill=True, stroke=False)
-
-        # Drittes Overlay
-        overlay3_x, overlay3_y, overlay3_width, overlay3_height = 40, 640, 475, 20
-        can.setFillColorRGB(1, 1, 1)  # Weißer Hintergrund
-        can.rect(overlay3_x, overlay3_y, overlay3_width, overlay3_height, fill=True, stroke=False)
-
-        # Feste Texte hinzufügen
-        can.setFillColorRGB(0, 0, 0)  # Schwarzer Text
-        can.setFont("Courier-Bold", 12)
-
-        y_text_position = overlay_y + overlay_height - 20
-        line_spacing = 30
-
-        # Feste Texte schreiben
-        can.drawString(overlay_x + 12, y_text_position, text1)
-        can.drawString(overlay_x + 12, y_text_position - line_spacing, text3)
-        can.drawString(overlay_x + 212, y_text_position - line_spacing, text4)
-
-        # Fester Text in roter Schrift
-        fixed_text = "!!! Achtung !!! Zwingend gesamtes Leergut abräumen."
-        can.setFillColorRGB(1, 0, 0)  # Rot
-        can.setFont("Courier-Bold", 14)
-        fixed_text_x, fixed_text_y = 75, 650
-        can.drawString(fixed_text_x, fixed_text_y, fixed_text)
-
-        # Unterstreichung des festen Texts
-        text_width = can.stringWidth(fixed_text, "Courier-Bold", 14)
-        underline_y = fixed_text_y - 5
-        can.setLineWidth(1)
-        can.line(fixed_text_x, underline_y, fixed_text_x + text_width, underline_y)
-
         # Namen hinzufügen (falls vorhanden)
         if page_number in page_name_map:
             combined_name, extra_value = page_name_map[page_number]
+            
             # Hauptnamen positionieren
-            can.setFillColorRGB(1, 0, 0)  # Roter Text
+            can.setFillColor(name_color_rgb)  # Benutzerdefinierte Farbe für Namen
             can.setFont("Courier-Bold", 20)
             can.drawString(name_x, name_y, combined_name)
 
-            # Zusätzlichen Wert aus Spalte 12 positionieren, wenn angegeben
+            # Zusätzlichen Wert aus Spalte 12 positionieren, falls vorhanden
             if extra_value and extra_x is not None and extra_y is not None:
+                can.setFillColor(extra_color_rgb)  # Benutzerdefinierte Farbe für E-Wert
                 can.setFont("Courier-Bold", 22)
                 can.drawString(extra_x, extra_y, extra_value)
 
@@ -134,6 +96,10 @@ st.title("PDF OCR und Excel-Abgleich mit Overlays")
 uploaded_pdf = st.file_uploader("Lade eine PDF-Datei hoch", type=["pdf"])
 uploaded_excel = st.file_uploader("Lade eine Excel-Tabelle hoch", type=["xlsx"])
 
+# Color Picker für Namen und E-Wert
+name_color = st.color_picker("Wählen Sie eine Farbe für den Namen", "#FF0000")  # Standard Rot
+extra_color = st.color_picker("Wählen Sie eine Farbe für den E-Wert", "#0000FF")  # Standard Blau
+
 if uploaded_pdf and uploaded_excel:
     # Zeige den "Ausführen"-Button, sobald beide Dateien hochgeladen wurden
     if st.button("Ausführen"):
@@ -163,7 +129,14 @@ if uploaded_pdf and uploaded_excel:
 
             # Overlays hinzufügen und Namen ins PDF schreiben
             output_pdf = add_overlays_with_text_on_top(
-                uploaded_pdf, page_name_map, name_x=285, name_y=785, extra_x=430, extra_y=755
+                uploaded_pdf, 
+                page_name_map, 
+                name_x=285, 
+                name_y=785, 
+                extra_x=430, 
+                extra_y=755, 
+                name_color=name_color,  # Übergabe der Name-Farbe
+                extra_color=extra_color  # Übergabe der E-Wert-Farbe
             )
             time.sleep(1)  # Simuliere Arbeit
             progress_bar.progress(100)
