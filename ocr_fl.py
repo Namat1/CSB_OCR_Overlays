@@ -88,7 +88,6 @@ def extract_numbers_from_pdf(pdf_file, rect, lang="eng"):
     doc.close()
     return page_numbers
 
-# Funktion: Namen ins PDF schreiben
 def write_name_to_pdf_page(pdf_file, page_name_map):
     reader = PdfReader(pdf_file)
     writer = PdfWriter()
@@ -103,18 +102,28 @@ def write_name_to_pdf_page(pdf_file, page_name_map):
             can.setFont("Courier-Bold", 12)
             can.drawString(50, 750, f"Name: {name}")
 
+        # Speichere das Canvas-Objekt
         can.save()
         packet.seek(0)
-        overlay_pdf = PdfReader(packet)
-        overlay_page = overlay_pdf.pages[0]
 
+        # Lade das Overlay aus dem gespeicherten Canvas
+        try:
+            overlay_pdf = PdfReader(packet)
+            overlay_page = overlay_pdf.pages[0]
+        except IndexError:
+            st.error(f"Fehler beim Erstellen des Overlays für Seite {page_number + 1}")
+            continue  # Überspringe diese Seite und fahre mit der nächsten fort
+
+        # Kombiniere die Originalseite mit dem Overlay
         page.merge_page(overlay_page)
         writer.add_page(page)
 
+    # Speicher das endgültige PDF
     output = BytesIO()
     writer.write(output)
     output.seek(0)
     return output
+
 
 # Streamlit App
 st.title("PDF OCR und Excel-Abgleich")
