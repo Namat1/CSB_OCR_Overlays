@@ -9,10 +9,16 @@ from PIL import Image
 import pytesseract
 import re
 
-# Funktion: Overlays mit deinem spezifischen Layout hinzufügen
+# Funktion: Overlays mit deinem spezifischen Layout und Texten hinzufügen
 def add_overlays_with_text_on_top(pdf_file, page_name_map, text_x_offset=12):
     reader = PdfReader(pdf_file)
     writer = PdfWriter()
+
+    # Feste Texte
+    text1 = "Name Fahrer: ___________________"
+    text2 = "LKW: ______________"
+    text3 = "Rolli Anzahl: ____________"
+    text4 = "Gewaschen?: _____________"
 
     for page_number, page in enumerate(reader.pages):
         packet = BytesIO()
@@ -33,7 +39,20 @@ def add_overlays_with_text_on_top(pdf_file, page_name_map, text_x_offset=12):
         can.setFillColorRGB(1, 1, 1)  # Weißer Hintergrund
         can.rect(overlay3_x, overlay3_y, overlay3_width, overlay3_height, fill=True, stroke=False)
 
-        # Fester Text mit roter Schrift
+        # Fester Text hinzufügen
+        can.setFillColorRGB(0, 0, 0)  # Schwarzer Text
+        can.setFont("Courier-Bold", 12)
+
+        y_text_position = overlay_y + overlay_height - 20
+        line_spacing = 30
+
+        # Feste Texte schreiben
+        can.drawString(overlay_x + text_x_offset, y_text_position, text1)
+        can.drawString(overlay_x + text_x_offset + 240, y_text_position, text2)
+        can.drawString(overlay_x + text_x_offset, y_text_position - line_spacing, text3)
+        can.drawString(overlay_x + text_x_offset + 200, y_text_position - line_spacing, text4)
+
+        # Fester Text in roter Schrift
         fixed_text = "!!! Achtung !!! Zwingend gesamtes Leergut abräumen."
         can.setFillColorRGB(1, 0, 0)  # Rot
         can.setFont("Courier-Bold", 14)
