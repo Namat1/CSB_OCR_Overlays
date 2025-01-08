@@ -12,9 +12,13 @@ import re
 import time
 
 # Funktion: Overlays mit Namen hinzufügen
-def add_overlays_with_text_on_top(pdf_file, page_name_map, name_x=200, name_y=750, extra_x=None, extra_y=None):
+def add_overlays_with_text_on_top(pdf_file, page_name_map, name_x=200, name_y=750, extra_x=None, extra_y=None, name_color="#FF0000", extra_color="#0000FF"):
     reader = PdfReader(pdf_file)
     writer = PdfWriter()
+
+    # Farbwerte in RGB umwandeln
+    name_color_rgb = HexColor(name_color)
+    extra_color_rgb = HexColor(extra_color)
 
     # Feste Texte
     text1 = "Name Fahrer: __________________________________"
@@ -67,11 +71,12 @@ def add_overlays_with_text_on_top(pdf_file, page_name_map, name_x=200, name_y=75
         # Namen und zusätzliche Werte
         if page_number in page_name_map:
             combined_name, extra_value = page_name_map[page_number]
-            can.setFillColorRGB(1, 0, 0)  # Rot für Namen
+            can.setFillColor(name_color_rgb)  # Dynamische Farbe für Namen
             can.setFont("Courier-Bold", 20)
             can.drawString(name_x, name_y, combined_name)
 
             if extra_value and extra_x is not None and extra_y is not None:
+                can.setFillColor(extra_color_rgb)  # Dynamische Farbe für Extra-Wert
                 can.setFont("Courier-Bold", 22)
                 can.drawString(extra_x, extra_y, extra_value)
 
