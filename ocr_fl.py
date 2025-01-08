@@ -110,8 +110,8 @@ def match_numbers_with_excel(page_numbers, excel_data):
         if not match.empty:
             # Sichere Umwandlung in Strings, um Fehler zu vermeiden
             name_spalte_4 = str(match.iloc[0]['Name_4']) if not pd.isna(match.iloc[0]['Name_4']) else ""
-            name_spalte_6 = str(match.iloc[0]['Name_6']) if not pd.isna(match.iloc[0]['Name_6']) else ""
-            combined_name = ", ".join(filter(None, [name_spalte_4, name_spalte_6]))
+            name_spalte_6 = str(match.iloc[0]['Name_7']) if not pd.isna(match.iloc[0]['Name_6']) else ""
+            combined_name = ", ".join(filter(None, [name_spalte_4, name_spalte_7]))
             page_name_map[page_number] = combined_name
     return page_name_map
 
@@ -142,8 +142,8 @@ if uploaded_pdf and uploaded_excel:
 
             # Excel-Tabelle einlesen und bereinigen
             excel_data = pd.read_excel(uploaded_excel, sheet_name="Touren", header=0)
-            relevant_data = excel_data.iloc[:, [0, 3, 5]].dropna(how='all')  # Spalten 1 (TOUR), 4 (Name) und 6
-            relevant_data.columns = ['TOUR', 'Name_4', 'Name_6']
+            relevant_data = excel_data.iloc[:, [0, 3, 5]].dropna(how='all')  # Spalten 1 (TOUR), 4 (Name) und 7
+            relevant_data.columns = ['TOUR', 'Name_4', 'Name_7']
             relevant_data['TOUR'] = relevant_data['TOUR'].astype(str)
 
 
