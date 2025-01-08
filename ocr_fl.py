@@ -8,6 +8,7 @@ import fitz  # PyMuPDF
 from PIL import Image
 import pytesseract
 import re
+import time
 
 # Funktion: Overlays mit Namen hinzufügen
 def add_overlays_with_text_on_top(pdf_file, page_name_map, name_x=200, name_y=750):
@@ -120,26 +121,43 @@ uploaded_pdf = st.file_uploader("Lade eine PDF-Datei hoch", type=["pdf"])
 uploaded_excel = st.file_uploader("Lade eine Excel-Tabelle hoch", type=["xlsx"])
 
 if uploaded_pdf and uploaded_excel:
-    # OCR-Zahlen extrahieren (nur vierstellige Nummern)
-    rect = (94, 48, 140, 75)  # Pixelbereich (x0, y0, x1, y1)
-    page_numbers = extract_numbers_from_pdf(uploaded_pdf, rect)
+    # Zeige den "Ausführen"-Button, sobald beide Dateien hochgeladen wurden
+    if st.button("Ausführen"):
+        # Ladebalken starten
+        with st.spinner("Verarbeitung läuft..."):
+            progress_bar = st.progress(0)
 
-    # Excel-Tabelle einlesen und bereinigen
-    excel_data = pd.read_excel(uploaded_excel, sheet_name="Touren", header=0)
-    relevant_data = excel_data.iloc[:, [0, 3]].dropna()  # Spalten 1 (TOUR) und 4 (Name)
-    relevant_data.columns = ['TOUR', 'Name']
-    relevant_data['TOUR'] = relevant_data['TOUR'].astype(str)
+            # OCR-Zahlen extrahieren
+            rect = (94, 48, 140, 75)  # Pixelbereich (x0, y0, x1, y1)
+            time.sleep(1)  # Simuliere Arbeit
+            progress_bar.progress(25)
 
-    # Abgleich durchführen
-    page_name_map = match_numbers_with_excel(page_numbers, relevant_data)
+            page_numbers = extract_numbers_from_pdf(uploaded_pdf, rect)
+            time.sleep(1)  # Simuliere Arbeit
+            progress_bar.progress(50)
 
-    # Overlays hinzufügen und Namen ins PDF schreiben
-    output_pdf = add_overlays_with_text_on_top(uploaded_pdf, page_name_map, name_x=300, name_y=700)
+            # Excel-Tabelle einlesen und bereinigen
+            excel_data = pd.read_excel(uploaded_excel, sheet_name="Touren", header=0)
+            relevant_data = excel_data.iloc[:, [0, 3]].dropna()  # Spalten 1 (TOUR) und 4 (Name)
+            relevant_data.columns = ['TOUR', 'Name']
+            relevant_data['TOUR'] = relevant_data['TOUR'].astype(str)
 
-    # Download-Button
-    st.download_button(
-        label="Bearbeitetes PDF herunterladen",
-        data=output_pdf,
-        file_name="output_with_overlays_and_names.pdf",
-        mime="application/pdf"
-    )
+            # Abgleich durchführen
+            page_name_map = match_numbers_with_excel(page_numbers, relevant_data)
+            time.sleep(1)  # Simuliere Arbeit
+            progress_bar.progress(75)
+
+            # Overlays hinzufügen und Namen ins PDF schreiben
+            output_pdf = add_overlays_with_text_on_top(uploaded_pdf, page_name_map, name_x=300, name_y=700)
+            time.sleep(1)  # Simuliere Arbeit
+            progress_bar.progress(100)
+
+        st.success("Verarbeitung abgeschlossen!")
+        
+        # Download-Button
+        st.download_button(
+            label="Bearbeitetes PDF herunterladen",
+            data=output_pdf,
+            file_name="output_with_overlays_and_names.pdf",
+            mime="application/pdf"
+        )
