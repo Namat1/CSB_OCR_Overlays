@@ -111,7 +111,7 @@ if uploaded_pdf is not None and uploaded_excel is not None:
     TEXT_X_OFFSET = 12
 
     # Lade Excel-Tabelle
-    excel_data = pd.read_excel(uploaded_excel, sheet_name="touren")
+    excel_data = pd.read_excel(uploaded_excel, sheet_name="Touren")
 
     if st.button("Overlay hinzufügen, Zahlen extrahieren und Namen abgleichen"):
         with st.spinner("Füge Overlays hinzu..."):
