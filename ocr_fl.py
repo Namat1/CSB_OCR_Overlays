@@ -90,7 +90,7 @@ def match_numbers_with_excel(page_numbers, excel_data):
     return page_name_map
 
 # Streamlit App
-st.title("PDF OCR und Excel-Abgleich mit Overlays")
+st.title("CSB Tourenplan")
 
 # PDF-Upload
 uploaded_pdf = st.file_uploader("Lade eine PDF-Datei hoch", type=["pdf"])
@@ -98,7 +98,7 @@ uploaded_excel = st.file_uploader("Lade eine Excel-Tabelle hoch", type=["xlsx"])
 
 # Color Picker für Namen und E-Wert
 name_color = st.color_picker("Wählen Sie eine Farbe für den Namen", "#FF0000")  # Standard Rot
-extra_color = st.color_picker("Wählen Sie eine Farbe für den E-Wert", "#0000FF")  # Standard Blau
+extra_color = st.color_picker("Wählen Sie eine Farbe für den LKW", "#0000FF")  # Standard Blau
 
 if uploaded_pdf and uploaded_excel:
     # Zeige den "Ausführen"-Button, sobald beide Dateien hochgeladen wurden
