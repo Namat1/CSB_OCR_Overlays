@@ -134,6 +134,7 @@ def match_numbers_with_excel(page_numbers, excel_data):
 
 # Streamlit App
 st.title("CSB Tourenplan schreiben")
+st.sidebar.image("path/to/your/logo.jpg", caption="Logo", use_column_width=True)
 
 # Farbauswahl-Optionen
 color_options = {
