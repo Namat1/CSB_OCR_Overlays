@@ -22,7 +22,7 @@ def add_overlays_with_text_on_top(pdf_file, page_name_map, name_x=200, name_y=75
 
     # Feste Texte
     text1 = "Name Fahrer: __________________________________"
-    text3 = "Rolli Anzahl: ____________"
+    text3 = "Rolli Anzahl - ca:_________"
     text4 = "LKW: _____________"
 
     for page_number, page in enumerate(reader.pages):
