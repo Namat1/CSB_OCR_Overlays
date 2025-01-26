@@ -115,6 +115,22 @@ def add_overlays_with_text_on_top(pdf_file, page_name_map, name_x=200, name_y=75
     output.seek(0)
     return output
 
+def extract_numbers_from_pdf(pdf_file, rect, lang="eng"):
+    doc = fitz.open(stream=pdf_file.read(), filetype="pdf")
+    page_numbers = {}
+
+    for page_number in range(len(doc)):
+        page = doc.load_page(page_number)
+        pix = page.get_pixmap(dpi=72)
+        img = Image.frombytes("RGB", [pix.width, pix.height], pix.samples)
+        cropped_img = img.crop(rect)
+        cropped_img = cropped_img.resize((cropped_img.width * 2, cropped_img.height * 2), Image.Resampling.LANCZOS)
+        text = pytesseract.image_to_string(cropped_img, lang=lang)
+        numbers = re.findall(r"\b\d{4}\b", text)  # Nur vierstellige Nummern
+        if numbers:
+            page_numbers[page_number] = numbers[0]  # Nehme die erste gefundene Nummer
+    doc.close()
+    return page_numbers
 
 # Funktion: OCR-Nummern mit Excel abgleichen
 def match_numbers_with_excel(page_numbers, excel_data):
