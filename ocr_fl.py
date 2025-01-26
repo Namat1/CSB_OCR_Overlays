@@ -107,6 +107,7 @@ def add_overlays_with_text_on_top(pdf_file, page_name_map, name_x=200, name_y=75
     return output
 
 
+
 # Funktion: OCR-Nummern mit Excel abgleichen
 def match_numbers_with_excel(page_numbers, excel_data):
     page_name_map = {}
