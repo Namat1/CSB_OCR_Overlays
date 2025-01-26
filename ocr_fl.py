@@ -71,10 +71,19 @@ def add_overlays_with_text_on_top(pdf_file, page_name_map, name_x=200, name_y=75
 
         can.drawString(overlay_x + 212, y_text_position - line_spacing, text4)
 
+        # Highlight fixed_text with a yellow background
         fixed_text = "!!! Achtung !!! Zwingend gesamtes Leergut abräumen."
-        can.setFillColorRGB(1, 0, 0)
-        can.setFont("Courier-Bold", 14)
         fixed_text_x, fixed_text_y = 75, 650
+        can.setFont("Courier-Bold", 14)
+
+        # Draw yellow rectangle for the fixed text highlight
+        fixed_text_width = can.stringWidth(fixed_text, "Courier-Bold", 14)
+        fixed_text_height = 16  # Adjust to font size
+        can.setFillColorRGB(1, 1, 0)  # Yellow background
+        can.rect(fixed_text_x - 2, fixed_text_y - 12, fixed_text_width + 4, fixed_text_height, fill=True, stroke=False)
+
+        # Draw the fixed text in black on top of the highlight
+        can.setFillColorRGB(0, 0, 0)
         can.drawString(fixed_text_x, fixed_text_y, fixed_text)
 
         text_width = can.stringWidth(fixed_text, "Courier-Bold", 14)
@@ -106,24 +115,6 @@ def add_overlays_with_text_on_top(pdf_file, page_name_map, name_x=200, name_y=75
     output.seek(0)
     return output
 
-
-# Funktion: OCR-Zahlen aus PDF extrahieren (nur vierstellige Nummern)
-def extract_numbers_from_pdf(pdf_file, rect, lang="eng"):
-    doc = fitz.open(stream=pdf_file.read(), filetype="pdf")
-    page_numbers = {}
-
-    for page_number in range(len(doc)):
-        page = doc.load_page(page_number)
-        pix = page.get_pixmap(dpi=72)
-        img = Image.frombytes("RGB", [pix.width, pix.height], pix.samples)
-        cropped_img = img.crop(rect)
-        cropped_img = cropped_img.resize((cropped_img.width * 2, cropped_img.height * 2), Image.Resampling.LANCZOS)
-        text = pytesseract.image_to_string(cropped_img, lang=lang)
-        numbers = re.findall(r"\b\d{4}\b", text)  # Nur vierstellige Nummern
-        if numbers:
-            page_numbers[page_number] = numbers[0]  # Nehme die erste gefundene Nummer
-    doc.close()
-    return page_numbers
 
 # Funktion: OCR-Nummern mit Excel abgleichen
 def match_numbers_with_excel(page_numbers, excel_data):
