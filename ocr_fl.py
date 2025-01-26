@@ -11,80 +11,86 @@ import pytesseract
 import re
 import time
 
-# Funktion: Overlays mit Namen hinzufügen
 def add_overlays_with_text_on_top(pdf_file, page_name_map, name_x=200, name_y=750, extra_x=None, extra_y=None, name_color="#FF0000", extra_color="#0000FF"):
     reader = PdfReader(pdf_file)
     writer = PdfWriter()
 
-    # Farbwerte in RGB umwandeln
     name_color_rgb = HexColor(name_color)
     extra_color_rgb = HexColor(extra_color)
 
-    # Feste Texte
     text1 = "Name Fahrer: __________________________________"
-    text3 = "Rolli Anzahl - ca: ________"
+    text3_part1 = "Rolli Anzahl - "
+    text3_part2 = "ca:"
+    text3_part3 = " ________"
     text4 = "LKW: _____________"
 
     for page_number, page in enumerate(reader.pages):
         packet = BytesIO()
         can = canvas.Canvas(packet, pagesize=A4)
 
-        # Erstes Overlay (großes Rechteck)
         overlay_x, overlay_y, overlay_width, overlay_height = 177, 742, 393, 64
-        can.setFillColorRGB(1, 1, 1)  # Weißer Hintergrund
+        can.setFillColorRGB(1, 1, 1)
         can.rect(overlay_x, overlay_y, overlay_width, overlay_height, fill=True, stroke=False)
 
-        # Zweites Overlay (rechts oben)
         overlay2_x, overlay2_y, overlay2_width, overlay2_height = 425, 747, 202, 81
         can.setFillColorRGB(1, 1, 1)
         can.rect(overlay2_x, overlay2_y, overlay2_width, overlay2_height, fill=True, stroke=False)
 
-        # Drittes Overlay (unten)
         overlay3_x, overlay3_y, overlay3_width, overlay3_height = 40, 640, 475, 20
         can.setFillColorRGB(1, 1, 1)
         can.rect(overlay3_x, overlay3_y, overlay3_width, overlay3_height, fill=True, stroke=False)
 
-        # Feste Texte hinzufügen
         can.setFillColorRGB(0, 0, 0)
         can.setFont("Courier-Bold", 12)
         y_text_position = overlay_y + overlay_height - 20
         line_spacing = 30
 
-        # Texte zeichnen
         can.drawString(overlay_x + 12, y_text_position, text1)
-        can.drawString(overlay_x + 12, y_text_position - line_spacing, text3)
+
+        # Highlight 'ca:' in yellow
+        can.drawString(overlay_x + 12, y_text_position - line_spacing, text3_part1)
+
+        can.setFillColorRGB(1, 1, 0)  # Yellow for 'ca:'
+        can.drawString(
+            overlay_x + 12 + can.stringWidth(text3_part1, "Courier-Bold", 12),
+            y_text_position - line_spacing,
+            text3_part2
+        )
+
+        can.setFillColorRGB(0, 0, 0)  # Back to black for the rest
+        can.drawString(
+            overlay_x + 12 + can.stringWidth(text3_part1 + text3_part2, "Courier-Bold", 12),
+            y_text_position - line_spacing,
+            text3_part3
+        )
+
         can.drawString(overlay_x + 212, y_text_position - line_spacing, text4)
 
-        # Warntext in Rot
         fixed_text = "!!! Achtung !!! Zwingend gesamtes Leergut abräumen."
         can.setFillColorRGB(1, 0, 0)
         can.setFont("Courier-Bold", 14)
         fixed_text_x, fixed_text_y = 75, 650
         can.drawString(fixed_text_x, fixed_text_y, fixed_text)
 
-        # Unterstreichung
         text_width = can.stringWidth(fixed_text, "Courier-Bold", 14)
         underline_y = fixed_text_y - 5
         can.setLineWidth(1)
         can.line(fixed_text_x, underline_y, fixed_text_x + text_width, underline_y)
 
-        # Namen und zusätzliche Werte
         if page_number in page_name_map:
             combined_name, extra_value = page_name_map[page_number]
-            can.setFillColor(name_color_rgb)  # Dynamische Farbe für Namen
+            can.setFillColor(name_color_rgb)
             can.setFont("Courier-Bold", 20)
             can.drawString(name_x, name_y, combined_name)
 
             if extra_value and extra_x is not None and extra_y is not None:
-                can.setFillColor(extra_color_rgb)  # Dynamische Farbe für Extra-Wert
+                can.setFillColor(extra_color_rgb)
                 can.setFont("Courier-Bold", 22)
                 can.drawString(extra_x, extra_y, extra_value)
 
-        # Canvas speichern und zurücksetzen
         can.save()
         packet.seek(0)
 
-        # Overlay-Seite lesen und zusammenführen
         overlay_pdf = PdfReader(packet)
         overlay_page = overlay_pdf.pages[0]
         page.merge_page(overlay_page)
@@ -94,6 +100,7 @@ def add_overlays_with_text_on_top(pdf_file, page_name_map, name_x=200, name_y=75
     writer.write(output)
     output.seek(0)
     return output
+
 
 # Funktion: OCR-Zahlen aus PDF extrahieren (nur vierstellige Nummern)
 def extract_numbers_from_pdf(pdf_file, rect, lang="eng"):
