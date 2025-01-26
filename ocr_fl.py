@@ -47,17 +47,22 @@ def add_overlays_with_text_on_top(pdf_file, page_name_map, name_x=200, name_y=75
 
         can.drawString(overlay_x + 12, y_text_position, text1)
 
-        # Highlight 'ca:' in yellow
+        # Highlight 'ca:' with a yellow background
         can.drawString(overlay_x + 12, y_text_position - line_spacing, text3_part1)
 
-        can.setFillColorRGB(1, 1, 0)  # Yellow for 'ca:'
-        can.drawString(
-            overlay_x + 12 + can.stringWidth(text3_part1, "Courier-Bold", 12),
-            y_text_position - line_spacing,
-            text3_part2
-        )
+        # Draw yellow rectangle for highlighting
+        highlight_x = overlay_x + 12 + can.stringWidth(text3_part1, "Courier-Bold", 12)
+        highlight_y = y_text_position - line_spacing - 2
+        highlight_width = can.stringWidth(text3_part2, "Courier-Bold", 12)
+        highlight_height = 14  # Adjust to font size
 
-        can.setFillColorRGB(0, 0, 0)  # Back to black for the rest
+        can.setFillColorRGB(1, 1, 0)  # Yellow background
+        can.rect(highlight_x, highlight_y, highlight_width, highlight_height, fill=True, stroke=False)
+
+        # Draw the text 'ca:' in black on top of the highlight
+        can.setFillColorRGB(0, 0, 0)
+        can.drawString(highlight_x, y_text_position - line_spacing, text3_part2)
+
         can.drawString(
             overlay_x + 12 + can.stringWidth(text3_part1 + text3_part2, "Courier-Bold", 12),
             y_text_position - line_spacing,
@@ -101,24 +106,6 @@ def add_overlays_with_text_on_top(pdf_file, page_name_map, name_x=200, name_y=75
     output.seek(0)
     return output
 
-
-# Funktion: OCR-Zahlen aus PDF extrahieren (nur vierstellige Nummern)
-def extract_numbers_from_pdf(pdf_file, rect, lang="eng"):
-    doc = fitz.open(stream=pdf_file.read(), filetype="pdf")
-    page_numbers = {}
-
-    for page_number in range(len(doc)):
-        page = doc.load_page(page_number)
-        pix = page.get_pixmap(dpi=72)
-        img = Image.frombytes("RGB", [pix.width, pix.height], pix.samples)
-        cropped_img = img.crop(rect)
-        cropped_img = cropped_img.resize((cropped_img.width * 2, cropped_img.height * 2), Image.Resampling.LANCZOS)
-        text = pytesseract.image_to_string(cropped_img, lang=lang)
-        numbers = re.findall(r"\b\d{4}\b", text)  # Nur vierstellige Nummern
-        if numbers:
-            page_numbers[page_number] = numbers[0]  # Nehme die erste gefundene Nummer
-    doc.close()
-    return page_numbers
 
 # Funktion: OCR-Nummern mit Excel abgleichen
 def match_numbers_with_excel(page_numbers, excel_data):
