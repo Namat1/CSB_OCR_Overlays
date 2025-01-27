@@ -86,12 +86,12 @@ def add_overlays_with_text_on_top(pdf_file, page_name_map, name_x=200, name_y=75
         highlight_width = fixed_text_width
         highlight_height = fixed_text_height + 2  # Leichte Anpassung für visuelle Balance
 
-       can.setFillColorRGB(1, 1, 0)  # Gelber Hintergrund
-       can.rect(highlight_x, highlight_y, highlight_width, highlight_height, fill=True, stroke=False)
+        can.setFillColorRGB(1, 1, 0)  # Gelber Hintergrund
+        can.rect(highlight_x, highlight_y, highlight_width, highlight_height, fill=True, stroke=False)
 
-       # Zeichne den Text in Rot
-       can.setFillColorRGB(1, 0, 0)  # Rote Schrift
-       can.drawString(fixed_text_x, fixed_text_y, fixed_text)
+        # Zeichne den Text in Rot
+        can.setFillColorRGB(1, 0, 0)  # Rote Schrift
+        can.drawString(fixed_text_x, fixed_text_y, fixed_text)
 
 
         text_width = can.stringWidth(fixed_text, "Courier-Bold", 14)
