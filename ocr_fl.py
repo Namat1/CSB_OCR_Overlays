@@ -71,20 +71,20 @@ def add_overlays_with_text_on_top(pdf_file, page_name_map, name_x=200, name_y=75
 
         can.drawString(overlay_x + 212, y_text_position - line_spacing, text4)
 
-       # Highlight fixed_text with a yellow background
-       fixed_text = "!!! Achtung !!! Zwingend gesamtes Leergut abräumen."
-       fixed_text_x, fixed_text_y = 75, 650
-       can.setFont("Courier-Bold", 14)
+        # Highlight fixed_text with a yellow background
+        fixed_text = "!!! Achtung !!! Zwingend gesamtes Leergut abräumen."
+        fixed_text_x, fixed_text_y = 75, 650
+        can.setFont("Courier-Bold", 14)
 
-       # Berechne Höhe und Breite des Textes
-       fixed_text_width = can.stringWidth(fixed_text, "Courier-Bold", 14)
-       fixed_text_height = 14  # Schriftgröße als Höhe
+        # Berechne Höhe und Breite des Textes
+        fixed_text_width = can.stringWidth(fixed_text, "Courier-Bold", 14)
+        fixed_text_height = 14  # Schriftgröße als Höhe
 
-       # Zeichne das gelbe Highlight (zentriert mit der Schrift)
-       highlight_x = fixed_text_x
-       highlight_y = fixed_text_y - fixed_text_height + 3  # Leichte Anpassung für Zentrierung
-       highlight_width = fixed_text_width
-       highlight_height = fixed_text_height + 2  # Leichte Anpassung für visuelle Balance
+        # Zeichne das gelbe Highlight (zentriert mit der Schrift)
+        highlight_x = fixed_text_x
+        highlight_y = fixed_text_y - fixed_text_height + 3  # Leichte Anpassung für Zentrierung
+        highlight_width = fixed_text_width
+        highlight_height = fixed_text_height + 2  # Leichte Anpassung für visuelle Balance
 
        can.setFillColorRGB(1, 1, 0)  # Gelber Hintergrund
        can.rect(highlight_x, highlight_y, highlight_width, highlight_height, fill=True, stroke=False)
