@@ -93,7 +93,6 @@ def add_overlays_with_text_on_top(pdf_file, page_name_map, name_x=200, name_y=75
         can.setFillColorRGB(1, 0, 0)  # Rote Schrift
         can.drawString(fixed_text_x, fixed_text_y, fixed_text)
 
-
         text_width = can.stringWidth(fixed_text, "Courier-Bold", 14)
         underline_y = fixed_text_y - 5
         can.setLineWidth(1)
