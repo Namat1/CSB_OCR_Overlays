@@ -82,9 +82,9 @@ def add_overlays_with_text_on_top(pdf_file, page_name_map, name_x=200, name_y=75
 
         # Zeichne das gelbe Highlight (zentriert mit der Schrift)
         highlight_x = fixed_text_x
-        highlight_y = fixed_text_y - fixed_text_height + 5  # Leichte Anpassung für Zentrierung
+        highlight_y = fixed_text_y - fixed_text_height + 6  # Leichte Anpassung für Zentrierung
         highlight_width = fixed_text_width
-        highlight_height = fixed_text_height + 6  # Leichte Anpassung für visuelle Balance
+        highlight_height = fixed_text_height + 7  # Leichte Anpassung für visuelle Balance
 
         can.setFillColorRGB(1, 1, 0)  # Gelber Hintergrund
         can.rect(highlight_x, highlight_y, highlight_width, highlight_height, fill=True, stroke=False)
