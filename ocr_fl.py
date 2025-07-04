@@ -171,7 +171,7 @@ color_options = {
     "Orange": "#FFA500",
     "Lila": "#800080",
     "Türkis": "#40E0D0",
-    "Pink": "#FFC0CB",
+    "Pink": "#f760e8",
     "Grau": "#808080",
     "Schwarz": "#000000"
 }
